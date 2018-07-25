@@ -50,8 +50,8 @@ class LabelFile(object):
             label = shape['label']
             # Add Chris
             difficult = int(shape['difficult'])
-            bndbox = LabelFile.convertPoints2BndBox(points)
-            writer.addBndBox(bndbox[0], bndbox[1], bndbox[2], bndbox[3], label, difficult)
+            #bndbox = LabelFile.convertPoints2BndBox(points)
+            writer.addBndBox(points, label, difficult)
 
         writer.save(targetFile=filename)
         return
@@ -77,8 +77,8 @@ class LabelFile(object):
             label = shape['label']
             # Add Chris
             difficult = int(shape['difficult'])
-            bndbox = LabelFile.convertPoints2BndBox(points)
-            writer.addBndBox(bndbox[0], bndbox[1], bndbox[2], bndbox[3], label, difficult)
+            #bndbox = LabelFile.convertPoints2BndBox(points)
+            writer.addBndBox(points, label, difficult)
 
         writer.save(targetFile=filename, classList=classList)
         return

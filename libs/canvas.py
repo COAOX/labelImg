@@ -224,7 +224,7 @@ class Canvas(QWidget):
         
         elif ev.button() == Qt.LeftButton:
             pos = self.transformPos(ev.pos())
-            if self.drawing:
+            if self.drawing():
                 self.line[1] = pos
             
 

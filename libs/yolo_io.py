@@ -21,8 +21,11 @@ class YOLOWriter:
         self.localImgPath = localImgPath
         self.verified = False
 
-    def addBndBox(self, xmin, ymin, xmax, ymax, name, difficult):
-        bndbox = {'xmin': xmin, 'ymin': ymin, 'xmax': xmax, 'ymax': ymax}
+    def addBndBox(self, points, name, difficult):
+        bndbox={}
+        for i in range(22): 
+            bndbox[('x' + str(i))] = points[i][0]
+            bndbox[('y' + str(i))] = points[i][1]
         bndbox['name'] = name
         bndbox['difficult'] = difficult
         self.boxlist.append(bndbox)
@@ -49,28 +52,17 @@ class YOLOWriter:
         out_class_file = None   #Update class list .txt
 
         if targetFile is None:
-            out_file = open(
-            self.filename + TXT_EXT, 'w', encoding=ENCODE_METHOD)
-            classesFile = os.path.join(os.path.dirname(os.path.abspath(self.filename)), "classes.txt")
-            out_class_file = open(classesFile, 'w')
-
+            out_file = open(self.filename + TXT_EXT, 'w', encoding=ENCODE_METHOD)
         else:
             out_file = codecs.open(targetFile, 'w', encoding=ENCODE_METHOD)
-            classesFile = os.path.join(os.path.dirname(os.path.abspath(targetFile)), "classes.txt")
-            out_class_file = open(classesFile, 'w')
-
 
         for box in self.boxlist:
-            classIndex, xcen, ycen, w, h = self.BndBox2YoloLine(box, classList)
-            print (classIndex, xcen, ycen, w, h)
-            out_file.write("%d %.6f %.6f %.6f %.6f\n" % (classIndex, xcen, ycen, w, h))
-
-        print (classList)
-        print (out_class_file)
-        for c in classList:
-            out_class_file.write(c+'\n')
-
-        out_class_file.close()
+            #classIndex, xcen, ycen, w, h = self.BndBox2YoloLine(box, classList)
+            #print (classIndex, xcen, ycen, w, h)
+            for i in range(22):
+                xi = box['x' + str(i)]
+                yi = box['y' + str(i)]
+                out_file.write("%.6f,%.6f\r\n" % (xi,yi))
         out_file.close()
 
 
@@ -82,19 +74,6 @@ class YoloReader:
         # [labbel, [(x1,y1), (x2,y2), (x3,y3), (x4,y4)], color, color, difficult]
         self.shapes = []
         self.filepath = filepath
-
-        if classListPath is None:
-            dir_path = os.path.dirname(os.path.realpath(self.filepath))
-            self.classListPath = os.path.join(dir_path, "classes.txt")
-        else:
-            self.classListPath = classListPath
-
-        print (filepath, self.classListPath)
-
-        classesFile = open(self.classListPath, 'r')
-        self.classes = classesFile.read().strip('\n').split('\n')
-
-        print (self.classes)
 
         imgSize = [image.height(), image.width(),
                       1 if image.isGrayscale() else 3]
@@ -110,9 +89,9 @@ class YoloReader:
     def getShapes(self):
         return self.shapes
 
-    def addShape(self, label, xmin, ymin, xmax, ymax, difficult):
+    def addShape(self, label, points, difficult):
 
-        points = [(xmin, ymin), (xmax, ymin), (xmax, ymax), (xmin, ymax)]
+        self.points = points
         self.shapes.append((label, points, None, None, difficult))
 
     def yoloLine2Shape(self, classIndex, xcen, ycen, w, h):
@@ -132,9 +111,11 @@ class YoloReader:
 
     def parseYoloFormat(self):
         bndBoxFile = open(self.filepath, 'r')
+        points=[]
         for bndBox in bndBoxFile:
-            classIndex, xcen, ycen, w, h = bndBox.split(' ')
-            label, xmin, ymin, xmax, ymax = self.yoloLine2Shape(classIndex, xcen, ycen, w, h)
-
-            # Caveat: difficult flag is discarded when saved as yolo format.
-            self.addShape(label, xmin, ymin, xmax, ymax, False)
+            x,y = bndBox.split(',')
+            point=[300,400]
+            point[0]=float(x)
+            point[1]=float(y)
+            points.append(point)
+        self.addShape('larva', points, False)
